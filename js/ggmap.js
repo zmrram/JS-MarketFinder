@@ -15,6 +15,8 @@ $(function() {
 
 		function success(position){
 			userCoord = position.coords;
+			console.log(userCoord);
+
 		}
 
 		navigator.geolocation.getCurrentPosition(success,error);
@@ -43,9 +45,28 @@ $(function() {
 	});
 
 	map = new google.maps.Map(document.getElementById('map'),mapOptions);
-	var marker = new google.maps.Marker({
-		position : new google.maps.LatLng(34.0565284,-117.8237182),
-		map : map
+	google.maps.event.addListener (map, 'click', function(){
+		infoWindow.close();
 	});
-	market.setMap(map);
+
+	$('#search').click(findStore);
+	function findStore(){
+		map.setCenter({lat : userCoord.latitude, lng : userCoord.longitude});
+		map.setZoom(10);
+		for (var i = 0; i < sampleData.data.length; i++){
+			var marker = new google.maps.Marker({
+			position : sampleData.data[i].location,
+			map : map,
+			});	
+			allMarkers.push(marker);
+
+			google.maps.event.addListener(marker, 'click', (function(marker, i) {
+	            return function() {
+	                infoWindow.setContent("<h3>" +sampleData.data[i].storeName  + "</h3>Price: " +  sampleData.data[i].price + "\nRating: " +  sampleData.data[i].rating);
+	                infoWindow.open(map, marker);
+	                }
+	        })(marker, i));
+		}
+	}
+
 });
