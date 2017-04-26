@@ -1,0 +1,9 @@
+#map {
+	height: 80vh;
+
+}
+
+#nav-bar {
+	height: 200px;
+	background-color: rgba(0,0,0,0.4);
+}
