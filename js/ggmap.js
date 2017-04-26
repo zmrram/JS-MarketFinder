@@ -43,4 +43,9 @@ $(function() {
 	});
 
 	map = new google.maps.Map(document.getElementById('map'),mapOptions);
+	var marker = new google.maps.Marker({
+		position : new google.maps.LatLng(34.0565284,-117.8237182),
+		map : map
+	});
+	market.setMap(map);
 });
