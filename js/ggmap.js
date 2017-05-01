@@ -3,8 +3,6 @@ $(function() {
 	var marketIds = [];
 	var marketName = [];
 	var marketAddress = [];
-	var allLatLong = [];
-	var allMarkers = [];
 	var infoWindow = null;
 	var position;
 	var userCoord;
@@ -51,7 +49,7 @@ $(function() {
 	});
 	
 	function addInfo(name,data){
-		return  "<h3>" + name + "</h3>Address: " + data.Address + "<br>Schedule: " + data.Schedule; 
+		return  "<h3>" + name + "</h3>Address: " + data.Address + "<br>Schedule: " + data.Schedule + "Products: " + data.Products; 
 		
 	}
 
@@ -67,7 +65,6 @@ $(function() {
 				map : map,
 			});
 			var content = addInfo(name,results);
-			allMarkers.push(marker);
 			google.maps.event.addListener(marker, 'click', (function(marker) {
 	            return function() {
 	                infoWindow.setContent(content);
