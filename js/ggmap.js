@@ -1,12 +1,14 @@
 $(function() {
 	
+	var marketIds = [];
+	var marketName = [];
+	var marketAddress = [];
 	var allLatLong = [];
 	var allMarkers = [];
 	var infoWindow = null;
 	var position;
 	var userCoord;
 	var tempMarkerHolder = [];
-
 	if (navigator.geolocation) {
 
 		function error (err){
@@ -15,7 +17,6 @@ $(function() {
 
 		function success(position){
 			userCoord = position.coords;
-			console.log(userCoord);
 
 		}
 
@@ -49,55 +50,61 @@ $(function() {
 		infoWindow.close();
 	});
 	
+	function addInfo(name,data){
+		return  "<h3>" + name + "</h3>Address: " + data.Address + "<br>Schedule: " + data.Schedule; 
+		
+	}
+
+	function addMarker(data, name) {
+		$.each(data, function(key, value) {
+			var results = data[key];
+			var googleLink = results['GoogleLink'];
+			var marketlatlng = decodeURIComponent(googleLink.substring(googleLink.indexOf("=")+1, googleLink.indexOf("("))).split(',');		
+			var marketlat = marketlatlng[0];
+			var marketlng = marketlatlng[1];
+			var marker = new google.maps.Marker({
+				position : new google.maps.LatLng(marketlat,marketlng),
+				map : map,
+			});
+			var content = addInfo(name,results);
+			allMarkers.push(marker);
+			google.maps.event.addListener(marker, 'click', (function(marker) {
+	            return function() {
+	                infoWindow.setContent(content);
+	                infoWindow.open(map, marker);
+	            }
+	        })(marker));
+		});	
+	}
+
 	$('#search').click(findStore);
 	function findStore(){
 		map.setCenter({lat : userCoord.latitude, lng : userCoord.longitude});
 		map.setZoom(10);
-		var marketIds = [];
-		var market = [];
-		var maddress = [];
 		$.ajax({
 			url: 'http://search.ams.usda.gov/farmersmarkets/v1/data.svc/locSearch?lat='+userCoord.latitude + "&lng=" + userCoord.longitude,
 			type: 'GET',
 			dataType: 'json',
 			success : function(data){
-				for (var i = 0; i < data.results.length; i++){
-					marketIds[i] = data.results[i].id;
-					market[i] = {marketName : data.results[i].marketname, marketAddress : ""};
-				}
-				var index = 0;
-				while (index < data.results.length){
-					$.ajax({
-						url: 'http://search.ams.usda.gov/farmersmarkets/v1/data.svc/mktDetail?id='+marketIds[index],
+				$.each(data.results, function(index, val) {
+					marketIds.push(val.id);
+					marketName.push(val.marketname);
+				});
+				var counter = 0;
+				$.each(marketIds, function(index, val) {
+					 $.ajax({
+						url: 'http://search.ams.usda.gov/farmersmarkets/v1/data.svc/mktDetail?id='+ val,
 						type: 'GET',
 						dataType: 'json',
-						success : function (data){
-							maddress.push(data.marketdetails.Address);	
-							console.log(maddress);				
+						success : function (data){	
+							addMarker(data,marketName[counter]);
+							counter++;
 						}
 					});	
-					index++;			
-				}
-				console.log(maddress);
-				console.log(market);
+				});
+
 			}
-
 		});
-		for (var i = 0; i < sampleData.data.length; i++){
-			console.log("Hello");
-			var marker = new google.maps.Marker({
-			position : sampleData.data[i].location,
-			map : map,
-			});	
-			allMarkers.push(marker);
-
-			google.maps.event.addListener(marker, 'click', (function(marker, i) {
-	            return function() {
-	                infoWindow.setContent("<h3>" +sampleData.data[i].storeName  + "</h3>Price: " +  sampleData.data[i].price + "\nRating: " +  sampleData.data[i].rating);
-	                infoWindow.open(map, marker);
-	                }
-	        })(marker, i));
-		}
 	}
 
 });
